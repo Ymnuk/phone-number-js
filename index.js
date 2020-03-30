@@ -22,7 +22,7 @@ if (program.input) {
     process.exit();
 }
 if (program.output) {
-    console.log(`Input: ${program.output}`);
+    console.log(`Output: ${program.output}`);
 } else {
     console.log(`Должен быть указан выходной файл`);
     process.exit();
@@ -36,12 +36,26 @@ const parser = csv.parse({
     delimiter: ';'
 });
 
+parser.on('error', function (err) {
+    console.error(err);
+});
+
 const transform = csv.transform((row, cb) => {
     while (row.length < 5) {
         row.push('');
     }
-    let phone = row[0];
-    phone = phone.replace('.', ',').replace(/[\s]{2}/g, ',').replace(/\t/g, ',').split(',');
+    let phone = row[0].trim();
+    if (/^\d\s{1,2}\d{3}\s\d{3}\s\d{2}\s\d{2}/.test(phone)) {
+        phone = phone.replace(/\s/g, '');
+    }
+    if (/^\d{3}\s\d{3}\s\d{2}\s\d{2}/.test(phone)) {
+        phone = phone.replace(/\s/g, '');
+    }
+    if (/^(\d{1})\s(\d{2})\s(\d{2})/) {
+        //phone = phone.replace(/\s/g, '');
+        phone = phone.replace(/^(\d{1})\s(\d{2})\s(\d{2})/, /$1$2$3/);
+    }
+    phone = phone.replace(/\+7\s+/g, '+7').replace(/\)\s+/g, ')').replace(/\s+(9\d\d)\s+/g, /$1/).replace(/\-\s+/g, '-').replace(/\s+\-/g, '-').replace('.', ',').replace(';', ',').replace(/[\s]{1}/g, ',').replace(/\t/g, ',').split(',');
     if (phone.length > 0) {
         let mobile = false;
         let tmp = phone[0];
@@ -61,8 +75,9 @@ const transform = csv.transform((row, cb) => {
     } else {
         row[0] = '';
     }
-    phone.length > 1 ? console.log(phone) : null;
+    //phone.length > 1 ? console.log(phone) : null;
     result = row.join(';') + EOL;
+    //console.log(result);
     cb(null, result);
 });
 
