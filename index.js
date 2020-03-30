@@ -37,6 +37,9 @@ const parser = csv.parse({
 });
 
 const transform = csv.transform((row, cb) => {
+    while (row.length < 5) {
+        row.push('');
+    }
     let phone = row[0];
     phone = phone.replace('.', ',').replace(/[\s]{2}/g, ',').replace(/\t/g, ',').split(',');
     if (phone.length > 0) {
